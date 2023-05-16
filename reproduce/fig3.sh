@@ -13,7 +13,7 @@ python main_imbalance.py  --epoch 3000  --round 3000 --lr 0.01 --hlr 0.02 \
 # Algorithm: FedNest, non-iid, blue line in Fig. 3b
 python main_imbalance.py  --epoch 3000  --round 3000 --lr 0.01 --hlr 0.02 \
 --neumann 3 --inner_ep 3 --local_ep 5 --outer_tau 1 \
---hvp_method global --optim svrg \
+--hvp_method global_batch --optim svrg \
 --output output/im_noniid_fednest.yaml
 
 # Algorithm: FedNest_SGD, non-iid, orange line in Fig.3b

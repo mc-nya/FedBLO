@@ -13,7 +13,7 @@ def load_data(args):
         if args.iid:
             dict_users, dataset_train_real = mnist_iid(dataset_train, args.num_users)
         else:
-            dict_users, dataset_train_real = mnist_noniid(dataset_train, args.num_users)
+            dict_users, dataset_train_real = mnist_noniid(dataset_train, args.num_users, args.q_noniid)
     elif args.dataset == 'cifar':
         trans_cifar = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])

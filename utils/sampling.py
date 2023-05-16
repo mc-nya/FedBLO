@@ -150,7 +150,7 @@ def mnist_noniid_normal(dataset, num_users):
     #     #print(labels[dict_users[i]])
     # return dict_users
 
-def mnist_noniid(dataset, num_users):
+def mnist_noniid(dataset, num_users, q_noniid=-1.0):
     """
     Sample non-I.I.D client data from MNIST dataset
     :param dataset:
@@ -181,33 +181,84 @@ def mnist_noniid(dataset, num_users):
         # print(np.where(labels_new==i)[0].shape,np.where(labels==i)[0])
     dataset_real.data = dataset_real.data[all_idxs]
     dataset_real.targets = dataset_real.targets[all_idxs]
+    dataset_proj = np.array(list(zip(range(len(dataset_real.data)),all_idxs)))
+    #('data_projection',dataset_proj.shape, dataset_proj[:10])
+    #print(dataset_real.data.shape,dataset_real.targets.shape)
 
-    num_shards, num_imgs = 200, int(len(all_idxs)/200)
-    idx_shard = [i for i in range(num_shards)]
-    dict_users = {i: np.array([], dtype='int64') for i in range((-num_users-1),num_users)}
+    if q_noniid<-0.5:
+        num_shards, num_imgs = 200, int(len(all_idxs)/200)
+        idx_shard = [i for i in range(num_shards)]
+        dict_users = {i: np.array([], dtype='int64') for i in range((-num_users-1),num_users)}
 
-    idxs_labels = np.vstack((all_idxs,labels[all_idxs]))
-    idxs_labels = idxs_labels[:,idxs_labels[1,:].argsort()]
-    # print(idxs_labels.shape, idxs_labels)
-    idxs = idxs_labels[0,:]
-    # divide and assign
-    for i in range(num_users):
-        rand_set = set(np.random.choice(idx_shard, 2, replace=False))
-        idx_shard = list(set(idx_shard) - rand_set)
+        idxs_labels = np.vstack((all_idxs,labels[all_idxs]))
+        idxs_labels = idxs_labels[:,idxs_labels[1,:].argsort()]
+        # print(idxs_labels.shape, idxs_labels)
+        idxs = idxs_labels[0,:]
+        # divide and assign
+        for i in range(num_users):
+            rand_set = set(np.random.choice(idx_shard, 2, replace=False))
+            idx_shard = list(set(idx_shard) - rand_set)
 
-        train_index = []
-        for rand in rand_set:
-            train_index.extend(idxs[rand*num_imgs:(rand+1)*num_imgs])
+            train_index = []
+            for rand in rand_set:
+                train_index.extend(idxs[rand*num_imgs:(rand+1)*num_imgs])
 
-        # print(len(train_index),labels[train_index])
-        #train_index= list(train_index)
-        train_index=np.array(train_index)
-        val_index = np.random.choice(train_index, ceil(train_index.shape[0]*0.2), replace=False)
-        train_index = np.array(list(set(train_index) - set(val_index)))
+            # print(len(train_index),labels[train_index])
+            #train_index= list(train_index)
+            train_index=np.array(train_index)
+            val_index = np.random.choice(train_index, ceil(train_index.shape[0]*0.2), replace=False)
+            train_index = np.array(list(set(train_index) - set(val_index)))
 
-        #print(train_index.shape,val_index.shape)
-        dict_users[i] = train_index
-        dict_users[-i-1] = val_index
+            #print(train_index.shape,val_index.shape)
+            dict_users[i] = train_index
+            dict_users[-i-1] = val_index
+    else:
+        if num_users % 10 != 0:
+            raise ValueError("num_users must be a multiple of 10")
+        num_q_clients = num_users // 10
+        dict_users = {i: np.array([], dtype='int64') for i in range((-num_users-1),num_users)}
+        num_q_class_i=np.zeros(10, dtype='int64')
+        num_example_per_client = dataset_real.data.shape[0] // num_users
+        for i in range(10):
+            num_example_class_i = np.where(labels_new==i)[0].shape[0]
+            num_example_q_i = int(num_example_per_client * q_noniid)
+            if num_example_q_i*num_q_clients > num_example_class_i:
+                num_example_q_i = num_example_class_i // num_q_clients
+            num_q_class_i[i] = num_example_q_i
+            # print('class: ', i, 'num_example_q_i: ', num_example_q_i, 'num_example_class_i: ', num_example_class_i)
+        dominate_class_client_list = []
+        available_sample_list = list(range(dataset_real.data.shape[0]))
+        for i in range(num_users):
+            dominate_class = i % 10
+            cls_i_examples = np.where(labels_new==dominate_class)[0]
+            cls_i_examples_available = list(set(cls_i_examples) & set(available_sample_list))
+            # print(type(cls_i_examples_available), type(num_q_class_i[dominate_class]))
+            rand_set = set(np.random.choice(cls_i_examples_available, num_q_class_i[dominate_class], replace=False))
+            available_sample_list = list(set(available_sample_list) - rand_set)
+            dominate_class_client_list.append(rand_set)
+            # print('client: ', i, 'dominate_class: ', i % 10, 'num_example: ', len(dominate_class_client_list[i]))
+            # print('available_sample_list: ', len(available_sample_list))
+        for i in range(num_users):
+            num_example_remain = num_example_per_client - len(dominate_class_client_list[i])
+            if num_example_remain > 0:
+                rand_set = set(np.random.choice(available_sample_list, num_example_remain, replace=False))
+                available_sample_list = list(set(available_sample_list) - rand_set)
+                dominate_class_client_list[i] = dominate_class_client_list[i] | rand_set
+            # print('client: ', i, 'dominate_class: ', i % 10, 'num_example: ', len(dominate_class_client_list[i]))
+            # print('available_sample_list: ', len(available_sample_list))
+        dominate_class_client_list[-1] = dominate_class_client_list[-1] | set(available_sample_list)
+        for i in range(num_users):
+            train_index = list(dominate_class_client_list[i])
+            train_index=np.array(train_index)
+
+            val_index = np.random.choice(train_index, ceil(train_index.shape[0]*0.2), replace=False)
+            train_index = np.array(list(set(train_index) - set(val_index)))
+
+            train_index = np.array(all_idxs)[train_index]
+            val_index = np.array(all_idxs)[val_index]
+            
+            dict_users[i] = train_index
+            dict_users[-i-1] = val_index
 
     return dict_users, dataset_real
 
