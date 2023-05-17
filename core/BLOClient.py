@@ -10,9 +10,14 @@ from core.function import (
 
 
 class BLOClient(Client):
-    def __init__(
-        self, args, client_id, net, dataset=None, idxs=None, hyper_param=None
-    ) -> None:
+
+    def __init__(self,
+                 args,
+                 client_id,
+                 net,
+                 dataset=None,
+                 idxs=None,
+                 hyper_param=None) -> None:
         super().__init__(args, client_id, net, dataset, idxs, hyper_param)
 
     def update_local(self, h_glob, q_glob, v_glob):
@@ -20,7 +25,7 @@ class BLOClient(Client):
         # train and update
         h_last, q_last = h_glob, q_glob
 
-        x_last = gather_flat_hyper_params(copy.deepcopy(self.hyper_param))
+        x_last = gather_flat_hyper_params(self.hyper_param)
         x_cur = x_last
 
         v_last = v_glob.clone()
@@ -35,7 +40,10 @@ class BLOClient(Client):
             p_cur = self.p_func(v_cur)
             s_cur = self.s_func(v_cur)
             h_cur = p_cur + h_last - p_last
-            q_cur = [s_cur[0] + q_last[0] - s_last[0], s_cur[1] + q_last[1] - s_last[1]]
+            q_cur = [
+                s_cur[0] + q_last[0] - s_last[0],
+                s_cur[1] + q_last[1] - s_last[1]
+            ]
 
             # update x, w, v
             x_next = x_cur - self.args.alpha * h_cur
@@ -50,6 +58,7 @@ class BLOClient(Client):
             for key in hyper_para:
                 self.hyper_param[key].data = hyper_para[key].data
 
+            del v_last, w_last, x_last, p_last, s_last, h_last, q_last
             v_last, v_cur = v_cur, v_next
             w_last, w_cur = w_cur, w_next
             x_last, x_cur = x_cur, x_next

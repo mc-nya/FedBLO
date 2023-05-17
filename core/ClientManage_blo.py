@@ -13,9 +13,9 @@ from core.function import assign_hyper_gradient, assign_weight_value
 
 
 class ClientManage:
-    def __init__(
-        self, args, net_glob, client_idx, dataset, dict_users, hyper_param
-    ) -> None:
+
+    def __init__(self, args, net_glob, client_idx, dataset, dict_users,
+                 hyper_param) -> None:
         self.net_glob = net_glob
         self.client_idx = client_idx
         self.args = args
@@ -83,7 +83,8 @@ class ClientManage:
     def fedIHGP(self, client_locals):
         d_out_d_y_locals = []
         for client in client_locals:
-            d_out_d_y = client.grad_d_out_d_y()
+            d_out_d_y = client.grad_d_out_d_y(create_graph=False)
+            d_out_d_y.detach()
             d_out_d_y_locals.append(d_out_d_y)
         p = FedAvgP(d_out_d_y_locals, self.args)
 
@@ -167,6 +168,7 @@ class ClientManage:
         return hg_glob, comm_round
 
     def fed_globhq(self, rho, last_h, last_q, last_p, last_s, last_v):
+
         comm_round = 0
         client_locals = []
         for idx in self.client_idx:
@@ -199,37 +201,50 @@ class ClientManage:
         q_locals = []
 
         for i, client in enumerate(client_locals):
-            p_locals.append(client.hyper_grad(v_glob.clone()))
+            p_locals.append(client.p_func(v_glob))
             h_locals.append(p_locals[-1])
 
-            s_locals.append(client.s_func(v_glob.clone()))
+            s_locals.append(client.s_func(v_glob))
             q_locals.append(s_locals[-1])
         print("Done local_sp_func")
-
-        if rho > 0 and (last_s is not None):
-            print("Update local_hq with momentum")
-            for i, client in enumerate(client_locals):
-                h_locals[i] = h_locals[i] + (1 - rho) * (last_h - last_p[i])
-                q_locals[i][0] = q_locals[i][0] + (1 - rho) * (last_q[0] - last_s[i][0])
-                q_locals[i][1] = q_locals[i][1] + (1 - rho) * (last_q[1] - last_s[i][1])
-                # print(
-                #     "q_locals[i][1].norm()",
-                #     q_locals[i][1].norm(),
-                #     "global_diff",
-                #     (last_q[1] - last_s[i][1]).norm(),
-                # )
-        h_glob = FedAvgP(h_locals, self.args)
-        q0 = [q[0] for q in q_locals]
-        q1 = [q[1] for q in q_locals]
-        q_glob = [
-            FedAvgP(q0, self.args),
-            FedAvgP(q1, self.args),
-        ]
+        with torch.no_grad():
+            if rho > 0 and (last_s is not None):
+                print("Update local_hq with momentum")
+                for i, client in enumerate(client_locals):
+                    h_locals[i] = h_locals[i] + (1 - rho) * (last_h -
+                                                             last_p[i])
+                    q_locals[i][0] = q_locals[i][0] + (1 - rho) * (
+                        last_q[0] - last_s[i][0])
+                    q_locals[i][1] = q_locals[i][1] + (1 - rho) * (
+                        last_q[1] - last_s[i][1])
+            h_glob = FedAvgP(h_locals, self.args)
+            q0 = [q[0] for q in q_locals]
+            q1 = [q[1] for q in q_locals]
+            q_glob = [
+                FedAvgP(q0, self.args),
+                FedAvgP(q1, self.args),
+            ]
         comm_round += 1
+        for client in client_locals:
+            try:
+                del client.net, client.ldr_train, client.ldr_val
+                del client.hyper_param, client.hyper_param_init
+                del client.args
+                del client.net0
+            except:
+                pass
+        del client_locals[:]
+        del client_locals
+        del h_locals[:], q_locals[:]
+        del h_locals, q_locals
+        del q0[:], q1[:]
+        del q0, q1
 
         return h_glob, q_glob, p_locals, s_locals, v_glob, comm_round
 
     def fed_locals(self, h_glob, q_glob, v_glob):
+        # record gpu usage
+
         client_locals = []
         print(self.client_idx)
         for idx in self.client_idx:
@@ -260,5 +275,17 @@ class ClientManage:
 
         hp_glob_dict = copy.deepcopy(self.hyper_param)
         hp_glob_dict = assign_weight_value(hp_glob_dict, hp_glob, True)
+
+        del hp_locals, w_locals, v_locals, hp_glob, w_glob
+        for client in client_locals:
+            try:
+                del client.net, client.ldr_train, client.ldr_val
+                del client.hyper_param, client.hyper_param_init
+                del client.net0
+            except:
+                pass
+        del client_locals[:]
+        del client_locals
+
         return hp_glob_dict, w_glob_dict_copy, v_glob, 1
         # return hp_glob, w_glob, v_glob, hp_glob_dict, w_glob_dict_copy
