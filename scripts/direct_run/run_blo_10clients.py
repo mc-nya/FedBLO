@@ -26,7 +26,7 @@ for tau in tau_list:
             script_file.write(f"#SBATCH --job-name={tau}_{q}_frac_0.1\n")
             script_file.write(
                 f"#SBATCH --output={save_path}/logs/{tau}_{q}_frac_0.1.txt\n")
-            script_file.write("export MKL_SERVICE_FORCE_INTEL=1 ")
+            script_file.write("export MKL_SERVICE_FORCE_INTEL=1 \n")
             script_file.write(
                 f"python main_imbalance_blo.py  --epoch 1000  --round 1000 --lr 0.01 --hlr 0.02  \
 --neumann 5 --inner_ep {tau}  \
