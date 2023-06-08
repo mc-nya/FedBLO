@@ -4,8 +4,8 @@ import os, sys
 name = "fednest"
 script_output_dir = f"scripts/{name}/"
 
-tau_list = [4, 8, 16, 32]
-q_list = [0.1, 0.5, 1.0]
+tau_list = [4, 8, 12]
+q_list = [0.1, 0.3, 0.5, 1.0]
 
 if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
