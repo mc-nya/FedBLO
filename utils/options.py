@@ -58,6 +58,7 @@ def args_parser():
     )
     parser.add_argument("--alpha", type=float, default=0.1, help="lr for x")
     parser.add_argument("--beta", type=float, default=0.1, help="lr for z")
+    parser.add_argument("--sarah_momentum", type=float, default=0.0, help="momentum for SARAH/SPIDER local update")
     # Minmax arguments
     parser.add_argument(
         "--minmax_s", type=int, default=5, help="The heterogenity of synthetic dataset"

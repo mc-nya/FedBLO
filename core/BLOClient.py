@@ -36,13 +36,14 @@ class BLOClient(Client):
 
         p_last = self.p_func(v_last)
         s_last = self.s_func(v_last)
+        sarah_momentum = self.args.sarah_momentum
         for _ in range(self.args.inner_ep):
             p_cur = self.p_func(v_cur)
             s_cur = self.s_func(v_cur)
-            h_cur = p_cur + h_last - p_last
+            h_cur = p_cur + (1 - sarah_momentum) * (h_last - p_last)
             q_cur = [
-                s_cur[0] + q_last[0] - s_last[0],
-                s_cur[1] + q_last[1] - s_last[1]
+                s_cur[0] + (1 - sarah_momentum) * (q_last[0] - s_last[0]),
+                s_cur[1] + (1 - sarah_momentum) * (q_last[1] - s_last[1])
             ]
 
             # update x, w, v
