@@ -123,8 +123,9 @@ IE{args.inner_ep}_N{args.neumann}_HLR{args.hlr}_{args.hvp_method}_{start_time}.y
             h_glob, q_glob, v_glob)
         comm_round += comm_round_func
         net_glob.load_state_dict(w_glob)
-        for k in hyper_param:
-            hyper_param[k].data = x_glob[k].data
+        if args.no_blo == False:
+            for k in hyper_param:
+                hyper_param[k].data = x_glob[k].data
         del w_glob, x_glob
         # print("Hyper param: ", hyper_param)
 
