@@ -10,7 +10,7 @@ script_output_dir = f"scripts/{name}/"
 # mc3: q=0.1, result2/
 # mc4: q=0.3, result2/
 # mc5: q=0.5, result2/
-server_name = "mctest"
+server_name = "mc3"
 # assign q list and result path according to server_name
 if server_name == "mctest":
     q_list = [0.1]

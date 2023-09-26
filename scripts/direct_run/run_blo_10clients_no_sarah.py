@@ -10,7 +10,7 @@ script_output_dir = f"scripts/{name}/"
 # mc3: q=0.1, result2/
 # mc4: q=0.3, result2/
 # mc5: q=0.5, result2/
-server_name = "mctest"
+server_name = "mc3"
 # assign q list and result path according to server_name
 if server_name == "mctest":
     q_list = [0.1]
@@ -40,7 +40,7 @@ if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
 for tau in tau_list:
     for q in q_list:
-        save_path = f"results/{name}/"
+        save_path = f"{result_path}/{name}/"
         out_file = f"{script_output_dir}/{tau}_{q}_frac_0.1.sh"
         if not os.path.exists(save_path + "logs"):
             os.makedirs(save_path + "logs")
