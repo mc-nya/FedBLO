@@ -1,11 +1,40 @@
 import numpy as np
 import os, sys
 
-name = "imbalance_blo_no_sarah_no_momentum"
+name = "imbalance_blo_no_sarah"
 script_output_dir = f"scripts/{name}/"
 
+# mctest : q=0.1, result/
+# mc1 : q=0.3, result/
+# mc2 : q=0.5, result/
+# mc3: q=0.1, result2/
+# mc4: q=0.3, result2/
+# mc5: q=0.5, result2/
+server_name = "mctest"
+# assign q list and result path according to server_name
+if server_name == "mctest":
+    q_list = [0.1]
+    result_path = "results/"
+elif server_name == "mc1":
+    q_list = [0.3]
+    result_path = "results/"
+elif server_name == "mc2":
+    q_list = [0.5]
+    result_path = "results/"
+elif server_name == "mc3":
+    q_list = [0.1]
+    result_path = "results2/"
+elif server_name == "mc4":
+    q_list = [0.3]
+    result_path = "results2/"
+elif server_name == "mc5":
+    q_list = [0.5]
+    result_path = "results2/"
+else:
+    raise ValueError("server_name not recognized")
+
 tau_list = [4, 8, 12]
-q_list = [0.1, 0.3, 0.5]
+# q_list = [0.1]
 
 if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
@@ -32,7 +61,7 @@ for tau in tau_list:
 --neumann 5 --inner_ep {tau}  \
 --hvp_method global_batch --optim sgd  \
 --output {save_path}/{tau}_{q}_frac_0.1.yaml --q_noniid {q}  \
---alpha 0.05 --beta 0.1 --frac 0.1 --momentum_rho 1.0 --sarah_momentum 1.0 ")
+--alpha 0.05 --beta 0.1 --frac 0.1 --momentum_rho 0.5 --sarah_momentum 1.0 ")
 
         os.system(f"chmod +x {out_file}")
         os.system(
