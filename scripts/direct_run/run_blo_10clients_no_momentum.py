@@ -11,7 +11,7 @@ if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
 for tau in tau_list:
     for q in q_list:
-        save_path = f"result_1/{name}/"
+        save_path = f"results_1/{name}/"
         out_file = f"{script_output_dir}/{tau}_{q}_frac_0.1.sh"
         if not os.path.exists(save_path + "logs"):
             os.makedirs(save_path + "logs")
