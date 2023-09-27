@@ -3,6 +3,7 @@
 save/*
 results/*
 results*/*
+result*/*
 scripts/*
 
 # documents

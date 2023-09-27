@@ -4,14 +4,14 @@ import os, sys
 name = "imbalance_blo"
 script_output_dir = f"scripts/{name}/"
 
-tau_list = [4, 8, 16, 32]
-q_list = [0.1, 0.5, 1.0]
+tau_list = [4, 8, 12]
+q_list = [0.1, 0.3, 0.5]
 
 if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
 for tau in tau_list:
     for q in q_list:
-        save_path = f"results/{name}/"
+        save_path = f"results_1/{name}/"
         out_file = f"{script_output_dir}/{tau}_{q}_frac_0.1.sh"
         if not os.path.exists(save_path + "logs"):
             os.makedirs(save_path + "logs")
@@ -28,7 +28,7 @@ for tau in tau_list:
                 f"#SBATCH --output={save_path}/logs/{tau}_{q}_frac_0.1.txt\n")
             script_file.write("export MKL_SERVICE_FORCE_INTEL=1 \n")
             script_file.write(
-                f"python main_imbalance_blo.py  --epoch 1000  --round 1000 --lr 0.01 --hlr 0.02  \
+                f"python main_imbalance_blo.py  --epoch 2000  --round 2000 --lr 0.01 --hlr 0.02  \
 --neumann 5 --inner_ep {tau}  \
 --hvp_method global_batch --optim sgd  \
 --output {save_path}/{tau}_{q}_frac_0.1.yaml --q_noniid {q}  \

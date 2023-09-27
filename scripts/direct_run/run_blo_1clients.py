@@ -7,6 +7,12 @@ script_output_dir = f"scripts/{name}/"
 tau_list = [4, 8, 16, 32]
 q_list = [0.1, 0.5, 1.0]
 
+# tau_list = [12]
+# q_list = [0.1, 0.5, 1.0]
+
+tau_list = [4, 8, 12, 16, 32]
+q_list = [0.3]
+
 if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
 for tau in tau_list:

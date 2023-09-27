@@ -4,7 +4,7 @@ import os, sys
 name = "fednest_noblo"
 script_output_dir = f"scripts/{name}/"
 
-tau_list = [4, 12]
+tau_list = [1]
 q_list = [0.1, 0.3, 0.5]
 
 if not os.path.exists(script_output_dir):

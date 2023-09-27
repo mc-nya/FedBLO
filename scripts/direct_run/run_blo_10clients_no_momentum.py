@@ -4,43 +4,14 @@ import os, sys
 name = "imbalance_blo_no_momentum"
 script_output_dir = f"scripts/{name}/"
 
-# mctest : q=0.1, result/
-# mc1 : q=0.3, result/
-# mc2 : q=0.5, result/
-# mc3: q=0.1, result2/
-# mc4: q=0.3, result2/
-# mc5: q=0.5, result2/
-server_name = "mctest"
-# assign q list and result path according to server_name
-if server_name == "mctest":
-    q_list = [0.1]
-    result_path = "results/"
-elif server_name == "mc1":
-    q_list = [0.3]
-    result_path = "results/"
-elif server_name == "mc2":
-    q_list = [0.5]
-    result_path = "results/"
-elif server_name == "mc3":
-    q_list = [0.1]
-    result_path = "results2/"
-elif server_name == "mc4":
-    q_list = [0.3]
-    result_path = "results2/"
-elif server_name == "mc5":
-    q_list = [0.5]
-    result_path = "results2/"
-else:
-    raise ValueError("server_name not recognized")
-
 tau_list = [4, 8, 12]
-# q_list = [0.1]
+q_list = [0.1, 0.3, 0.5]
 
 if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
 for tau in tau_list:
     for q in q_list:
-        save_path = f"{result_path}/{name}/"
+        save_path = f"result_1/{name}/"
         out_file = f"{script_output_dir}/{tau}_{q}_frac_0.1.sh"
         if not os.path.exists(save_path + "logs"):
             os.makedirs(save_path + "logs")
@@ -57,7 +28,7 @@ for tau in tau_list:
                 f"#SBATCH --output={save_path}/logs/{tau}_{q}_frac_0.1.txt\n")
             script_file.write("export MKL_SERVICE_FORCE_INTEL=1 \n")
             script_file.write(
-                f"python main_imbalance_blo.py  --epoch 1000  --round 1000 --lr 0.01 --hlr 0.02  \
+                f"python main_imbalance_blo.py  --epoch 2000  --round 2000 --lr 0.01 --hlr 0.02  \
 --neumann 5 --inner_ep {tau}  \
 --hvp_method global_batch --optim sgd  \
 --output {save_path}/{tau}_{q}_frac_0.1.yaml --q_noniid {q}  \

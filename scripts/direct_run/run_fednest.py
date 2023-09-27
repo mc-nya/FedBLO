@@ -5,7 +5,7 @@ name = "fednest"
 script_output_dir = f"scripts/{name}/"
 
 tau_list = [4, 8, 16, 32]
-q_list = [0.1, 0.5, 1.0]
+q_list = [0.1, 0.3, 0.5]
 
 if not os.path.exists(script_output_dir):
     os.makedirs(script_output_dir)
@@ -26,10 +26,10 @@ for tau in tau_list:
             script_file.write(f"#SBATCH --job-name={tau}_{q}_frac_0.1\n")
             script_file.write(
                 f"#SBATCH --output={save_path}/logs/{tau}_{q}_frac_0.1.txt\n")
-            script_file.write(" export MKL_SERVICE_FORCE_INTEL=1 ")
+            script_file.write(" export MKL_SERVICE_FORCE_INTEL=1 \n")
             script_file.write(
                 f"python main_imbalance.py  --epoch 1000  --round 10000 --lr 0.01 --hlr 0.02  \
---neumann 3 --inner_ep {tau}  --local_ep 1 --outer_tau {tau}  \
+--neumann 3 --inner_ep 1 --local_ep {tau} --outer_tau {tau}  \
 --hvp_method global_batch --optim svrg  \
 --output {save_path}/{tau}_{q}_frac_0.1.yaml --q_noniid {q}  \
 --frac 0.1 ")
